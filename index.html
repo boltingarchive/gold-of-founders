@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Foundry: Pure Ideas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================
+       CSS CUSTOM PROPERTIES
+    ============================================ */
+    :root {
+      --bg:         #0a0a0a;
+      --surface:    #111111;
+      --border:     #1e1e1e;
+      --border-mid: #2a2a2a;
+      --muted:      #404040;
+      --dim:        #6b6b6b;
+      --mid:        #999999;
+      --text:       #e8e8e8;
+      --white:      #f5f5f5;
+      --accent:     #f5f5f5;
+      --mono:       'DM Mono', 'Fira Mono', monospace;
+      --sans:       'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    /* ============================================
+       RESET & BASE
+    ============================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ============================================
+       LAYOUT
+    ============================================ */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+      width: 100%;
+    }
+
+    /* ============================================
+       HEADER / NAV
+    ============================================ */
+    header {
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      text-transform: uppercase;
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    nav a {
+      font-size: 13px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: var(--mid); }
+
+    /* ============================================
+       MAIN CONTENT
+    ============================================ */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ============================================
+       HERO SECTION
+    ============================================ */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    /* The Blueprint card */
+    .blueprint-card {
+      background: var(--surface);
+      border: 1px solid var(--border-mid);
+      border-radius: 4px;
+      padding: 48px 40px;
+      margin-bottom: 32px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .blueprint-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--muted), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .blueprint-card.active::before { opacity: 1; }
+
+    .blueprint-card.loading .blueprint-text {
+      animation: pulse 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.3; }
+      to   { opacity: 0.7; }
+    }
+
+    .blueprint-empty {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    .blueprint-text {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+
+    /* Pill tags inside blueprint */
+    .tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 2px;
+      margin: 0 2px;
+    }
+
+    .tag-model  { background: #1a1a1a; border: 1px solid #2e2e2e; color: #a0a0a0; }
+    .tag-industry { background: #141414; border: 1px solid #262626; color: #888888; }
+    .tag-problem { background: #121212; border: 1px solid #222222; color: #787878; }
+
+    .blueprint-meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ============================================
+       BUTTON CLUSTER
+    ============================================ */
+    .btn-cluster {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .btn {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      padding: 11px 22px;
+      transition: all 0.15s ease;
+      outline: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-primary {
+      background: var(--white);
+      color: #0a0a0a;
+    }
+
+    .btn-primary:hover {
+      background: #d8d8d8;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--dim);
+      border: 1px solid var(--border-mid);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--muted);
+      color: var(--mid);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary:disabled:hover {
+      border-color: var(--border-mid);
+      color: var(--dim);
+    }
+
+    /* Copy feedback */
+    .btn-secondary.copied {
+      border-color: #3a3a3a;
+      color: #888;
+    }
+
+    /* ============================================
+       HISTORY
+    ============================================ */
+    .history-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .history-idx {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      min-width: 18px;
+      flex-shrink: 0;
+    }
+
+    .history-text {
+      font-size: 13px;
+      color: var(--dim);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    .history-empty {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      padding: 10px 0;
+    }
+
+    /* ============================================
+       ABOUT SECTION
+    ============================================ */
+    .about-section {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 20px;
+    }
+
+    .about-block h3 {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 10px;
+    }
+
+    .about-block p {
+      font-size: 13px;
+      color: var(--dim);
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    /* ============================================
+       FOOTER
+    ============================================ */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+
+    .footer-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer p {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    footer a {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--mid); }
+
+    /* ============================================
+       COUNTER BADGE
+    ============================================ */
+    .counter-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      margin-top: 14px;
+    }
+
+    /* ============================================
+       RESPONSIVE
+    ============================================ */
+    @media (max-width: 540px) {
+      nav { padding: 16px 18px; }
+      .hero { padding: 52px 0 48px; }
+      .blueprint-card { padding: 36px 24px; }
+      .blueprint-text { font-size: 18px; }
+      .about-grid { grid-template-columns: 1fr; gap: 24px; }
+      .btn-cluster { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <nav>
+      <div class="logo">Foundry<span>:pure</span></div>
+      <a href="#about">No-AI engine</a>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+
+        <p class="hero-eyebrow">Business Blueprint Generator</p>
+
+        <!-- Blueprint display card -->
+        <div class="blueprint-card" id="blueprintCard">
+          <p class="blueprint-empty" id="blueprintEmpty">
+            &mdash; press generate &mdash;
+          </p>
+          <p class="blueprint-text" id="blueprintText" style="display:none;"></p>
+          <p class="blueprint-meta" id="blueprintMeta" style="display:none;"></p>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="btn-cluster">
+          <button class="btn btn-primary" id="generateBtn" onclick="generateIdea()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 1v2M6.5 10v2M1 6.5h2M10 6.5h2M2.636 2.636l1.414 1.414M8.95 8.95l1.414 1.414M2.636 10.364l1.414-1.414M8.95 4.05l1.414-1.414" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            Generate Blueprint
+          </button>
+          <button class="btn btn-secondary" id="copyBtn" onclick="copyIdea()" disabled>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M1 8V2a1 1 0 011-1h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <p class="counter-badge" id="counterBadge"></p>
+
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="history-section">
+      <div class="container">
+        <p class="section-label">Recent blueprints</p>
+        <ul class="history-list" id="historyList">
+          <li><p class="history-empty">No history yet.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about-section" id="about">
+      <div class="container">
+        <p class="section-label">No-AI Philosophy</p>
+        <div class="about-grid">
+          <div class="about-block">
+            <h3>Human-Curated Logic</h3>
+            <p>
+              Every combination comes from a hand-crafted database of industries,
+              problems, and business models — not a language model. The ideas are
+              yours to own and interpret.
+            </p>
+          </div>
+          <div class="about-block">
+            <h3>Why No AI?</h3>
+            <p>
+              AI generates the expected. Structured randomness — bounded by human
+              judgment — surfaces collisions you'd never prompt for. Serendipity
+              is a feature, not a bug.
+            </p>
+          </div>
+          <div class="about-block">
+            <h3>The Engine</h3>
+            <p>
+              Three arrays: Industries (20), Problems (20), Business Models (20).
+              That's 8,000 unique permutations from a file you can read in five
+              minutes.
+            </p>
+          </div>
+          <div class="about-block">
+            <h3>Open Source</h3>
+            <p>
+              Fork it, extend the arrays, swap the palette. The philosophy is
+              simple: software should be readable, auditable, and owned by its
+              users.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <p>foundry:pure &mdash; zero dependency</p>
+      <a href="https://github.com/your-username/foundry-pure" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        View on GitHub
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    /* ============================================
+       THE SEED DATABASE — No AI, all human.
+       20+ items per array = 8,000+ permutations.
+    ============================================ */
+    const IDEA_DATABASE = {
+
+      // Business models: how value is captured
+      BusinessModels: [
+        'Subscription Platform',
+        'Marketplace',
+        'Franchise Model',
+        'API-as-a-Service',
+        'Community + Premium Tier',
+        'White-Label SaaS',
+        'Pay-per-Outcome',
+        'Managed Service',
+        'Open Source + Enterprise',
+        'Data Licensing',
+        'Peer-to-Peer Network',
+        'Vertical Integration Play',
+        'Micro-SaaS Tool',
+        'Aggregator',
+        'Direct-to-Consumer Brand',
+        'Cohort-Based Learning',
+        'Usage-Based Pricing',
+        'Productized Consultancy',
+        'Revenue Share Co-op',
+        'Hardware + Software Bundle',
+        'Guild / Professional Network',
+        'Freemium Community',
+      ],
+
+      // Industries / verticals
+      Industries: [
+        'Independent Trades & Construction',
+        'Rural & Agricultural Supply',
+        'Senior Care & Aging-in-Place',
+        'Independent Hospitality & F&B',
+        'Creative Freelancers',
+        'Municipal & Local Government',
+        'Specialty Healthcare Clinics',
+        'Commercial Real Estate',
+        'Sustainable Supply Chains',
+        'Maritime & Shipping',
+        'Childcare & Early Education',
+        'Independent Insurance Brokers',
+        'Amateur & Semi-Pro Sports',
+        'Mental Health & Wellness Providers',
+        'Legal Services for Individuals',
+        'Independent Retail & Boutiques',
+        'Non-Profit & Social Enterprise',
+        'Skilled Trades Apprenticeships',
+        'Faith-Based Organisations',
+        'Independent Media & Publishing',
+        'Veterinary Practices',
+        'Event Planning & Production',
+      ],
+
+      // Specific, underserved pain-points
+      Problems: [
+        'Scheduling & Dispatch Chaos',
+        'Cash-Flow Gaps Between Projects',
+        'Compliance Documentation Burden',
+        'Finding Qualified Subcontractors',
+        'Customer Communication Friction',
+        'Inventory Shrinkage & Waste',
+        'Staff Retention & Onboarding',
+        'Equipment Maintenance & Downtime',
+        'Fragmented Supplier Relationships',
+        'Late Payments & Invoice Disputes',
+        'Remote Team Co-ordination',
+        'Knowledge Capture Before Retirement',
+        'Low Digital Discoverability',
+        'Seasonal Revenue Volatility',
+        'Benefits Access for Independents',
+        'Permitting & Approval Delays',
+        'Volunteer & Contractor Tracking',
+        'Cross-Border Tax Complexity',
+        'Quote Accuracy & Scope Creep',
+        'Last-Mile Logistics Gaps',
+        'Skill Gap in Aging Workforce',
+        'Community Trust & Credentialing',
+      ],
+
+    };
+
+    /* ============================================
+       STATE
+    ============================================ */
+    let currentIdea   = null;
+    let history       = [];
+    let generateCount = 0;
+
+    /* ============================================
+       HELPERS
+    ============================================ */
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function buildBlueprint() {
+      const model    = pick(IDEA_DATABASE.BusinessModels);
+      const industry = pick(IDEA_DATABASE.Industries);
+      const problem  = pick(IDEA_DATABASE.Problems);
+      return { model, industry, problem };
+    }
+
+    function blueprintToString({ model, industry, problem }) {
+      return `${model} for ${industry} solving ${problem}`;
+    }
+
+    /* ============================================
+       RENDER BLUEPRINT CARD
+    ============================================ */
+    function renderBlueprint({ model, industry, problem }) {
+      const card  = document.getElementById('blueprintCard');
+      const empty = document.getElementById('blueprintEmpty');
+      const text  = document.getElementById('blueprintText');
+      const meta  = document.getElementById('blueprintMeta');
+
+      // Loading flash
+      card.classList.add('loading');
+      empty.style.display = 'none';
+
+      setTimeout(() => {
+        card.classList.remove('loading');
+        card.classList.add('active');
+
+        text.style.display = 'block';
+        text.innerHTML =
+          `<span class="tag tag-model">${model}</span> for ` +
+          `<span class="tag tag-industry">${industry}</span> solving ` +
+          `<span class="tag tag-problem">${problem}</span>`;
+
+        meta.style.display = 'block';
+        meta.textContent = `#${generateCount} · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }, 220);
+    }
+
+    /* ============================================
+       GENERATE
+    ============================================ */
+    function generateIdea() {
+      generateCount++;
+      const blueprint = buildBlueprint();
+      currentIdea     = blueprint;
+
+      // Enable copy
+      const copyBtn = document.getElementById('copyBtn');
+      copyBtn.disabled = false;
+
+      // Update counter
+      document.getElementById('counterBadge').textContent =
+        `${generateCount.toLocaleString()} blueprint${generateCount !== 1 ? 's' : ''} generated this session`;
+
+      // Render card
+      renderBlueprint(blueprint);
+
+      // Add to history (max 5, newest first)
+      history.unshift(blueprintToString(blueprint));
+      if (history.length > 5) history.pop();
+      renderHistory();
+    }
+
+    /* ============================================
+       RENDER HISTORY
+    ============================================ */
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (history.length === 0) {
+        list.innerHTML = '<li><p class="history-empty">No history yet.</p></li>';
+        return;
+      }
+
+      list.innerHTML = history.map((item, i) =>
+        `<li class="history-item">
+          <span class="history-idx">${String(i + 1).padStart(2, '0')}</span>
+          <span class="history-text">${escapeHTML(item)}</span>
+        </li>`
+      ).join('');
+    }
+
+    /* ============================================
+       COPY TO CLIPBOARD
+    ============================================ */
+    function copyIdea() {
+      if (!currentIdea) return;
+      const str     = blueprintToString(currentIdea);
+      const copyBtn = document.getElementById('copyBtn');
+
+      navigator.clipboard.writeText(str).then(() => {
+        copyBtn.textContent = '✓ Copied';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M1 8V2a1 1 0 011-1h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg> Copy`;
+          copyBtn.classList.remove('copied');
+        }, 1800);
+      }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = str;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    }
+
+    /* ============================================
+       UTILITY
+    ============================================ */
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    /* ============================================
+       KEYBOARD SHORTCUT: Space to generate
+    ============================================ */
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault();
+        generateIdea();
+      }
+    });
+  </script>
+
+</body>
+</html>
